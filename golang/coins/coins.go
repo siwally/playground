@@ -1,5 +1,7 @@
-// Package coins provides functionality to calculate the ways
-// of dividing a given number of coins into piles.
+// Package coins provides functionality to calculate the ways  of dividing a
+// given number of coins into piles.  Although the idea is from a Project Euler,
+// this in no ways attempts to find an elegant mathematical solution, and is
+// just a brute force implementation to try out various aspects of Go.
 package coins
 
 // PermsFn returns a function that can be called multiple times, in order to calculate
@@ -30,7 +32,7 @@ func PermsFn() func() int {
 }
 
 func isNewPerm(perms []int, minPileSize int) bool {
-	// walk from the end, as lowest values will be to the right
+	// walk from the end, as lowest values will be to the right (TBC)
 	for j := len(perms) - 1; j >= 0; j-- {
 		if perms[j] < minPileSize {
 			return false
