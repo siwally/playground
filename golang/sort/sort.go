@@ -4,18 +4,20 @@
 // back up the tree and merging pairs of sorted lists together.
 package sort
 
+// Interface alg allows the algorithm that orchestrates dividing the list into
+// halves, sorting and merging to be changed in benchmarking, e.g. to use parallelism with channels.
 type alg interface {
 	divideAndMerge(in []int) []int
 }
 
+// Struct seqAlg is used as a method receiver for sequential orchestration of the algorithm
 type seqAlg struct {
 }
 
-var a alg = seqAlg{}
+var algInUse alg = seqAlg{}
 
 func Sort(in []int) ([]int, error) {
 	return sort(in), nil // TODO Handle panics in defer block and return as errors
-	// TODO Try allocating single array to use with recursion
 }
 
 func sort(in []int) []int {
@@ -30,9 +32,8 @@ func sort(in []int) []int {
 		if in[0] > in[1] {
 			res[0], res[1] = in[1], in[0]
 		}
-
 	default:
-		res = a.divideAndMerge(in)
+		res = algInUse.divideAndMerge(in)
 	}
 
 	return res
@@ -42,24 +43,26 @@ func (s seqAlg) divideAndMerge(in []int) []int {
 	l := in[0 : len(in)/2]
 	r := in[len(l):]
 
-	return merge(sort(l), sort(r))
+	res := make([]int, len(in))
+	merge(sort(l), sort(r), res)
+
+	return res
 }
 
-func merge(l []int, r []int) []int {
-
-	res := make([]int, len(l)+len(r))
+// Too expensive for merge to make a new slice for the result each time it
+// recurses, so pass as parameter res
+func merge(l []int, r []int, res []int) {
 
 	switch {
 	case len(l) == 0:
-		return r
+		copy(res, r)
 	case len(r) == 0:
-		return l
+		copy(res, l)
 	case l[0] < r[0]:
 		res[0], l = l[0], l[1:]
+		merge(l, r, res[1:])
 	default:
 		res[0], r = r[0], r[1:]
+		merge(l, r, res[1:])
 	}
-
-	copy(res[1:], merge(l, r))
-	return res
 }

@@ -80,7 +80,7 @@ func BenchmarkSort(b *testing.B) {
 		v--
 	}
 
-	a = seqAlg{}
+	algInUse = seqAlg{}
 
 	for i := 0; i < b.N; i++ {
 		Sort(in[0:])
@@ -95,7 +95,7 @@ func BenchmarkSortParallel(b *testing.B) {
 		v--
 	}
 
-	a = parAlg{}
+	algInUse = parAlg{}
 
 	for i := 0; i < b.N; i++ {
 		Sort(in[0:])
