@@ -1,0 +1,1 @@
+Small projects and experiments to get a feel for different languages, and to serve as an easy reference for when I build larger projects. The solutions themselves will generally be far from perfect, and wll at times be almost deliberately over-engineered as I try out different features!
