@@ -16,6 +16,7 @@ type seqAlg struct {
 
 var algInUse alg = seqAlg{}
 
+// Sort sopts the supplied slice of ints, returning a new slice ordered numerically from lowest to highest.
 func Sort(in []int) ([]int, error) {
 	return sort(in), nil // TODO Handle panics in defer block and return as errors
 }
