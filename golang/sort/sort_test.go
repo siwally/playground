@@ -72,7 +72,7 @@ func matches(res []int, exp []int) bool {
 	return true
 }
 
-func BenchmarkSort(b *testing.B) {
+func BenchmarkSortSeq(b *testing.B) {
 	in := [1000000]int{}
 
 	for i, v := 0, len(in); i < len(in); i++ {
