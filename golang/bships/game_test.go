@@ -55,8 +55,8 @@ func TestHorizontalShip(t *testing.T) {
 }
 
 // Gameplay features
-// TODO Test sinking a ship, multiple ships
 // TODO Test ending a game when the ship is sunk
+// TODO Test sinking a ship, multiple ships
 // TODO Test game stats - ships hit, ships remaining
 
 func checkHitOrMiss(game *Game, move coord, t *testing.T, expected bool) {
