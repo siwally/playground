@@ -54,39 +54,8 @@ func TestHorizontalShip(t *testing.T) {
 	}
 }
 
-func TestShipBoundaries(t *testing.T) {
-
-	// fine, up to right-hand edge
-	ship := Ship{coord{'D', 6}, leftToRight, 3}
-
-	if _, err := NewGame(ship); err != nil {
-		t.Errorf("Should be able to create game with ship up righ-hand boundary; received err: %v", err)
-	}
-
-	// not fine, past right-hand edge
-	ship = Ship{coord{'D', 6}, leftToRight, 4}
-
-	if _, err := NewGame(ship); err == nil {
-		t.Errorf("Should not be able to create game with ship end past right-hand boundary")
-	}
-
-	// not fine, starting position too low
-	ship = Ship{coord{'D', 0}, leftToRight, 4}
-
-	if _, err := NewGame(ship); err == nil {
-		t.Errorf("Should not be able to create game with ship start point past left-hand boundary")
-	}
-
-}
-
-// TODO Test multiple ships
-
-// TODO Test multiple ships overlapping
-
-// TODO Test ship lengths, types and number of ships - game definition or game config
-
 // Gameplay features
-// TODO Test sinking a ship
+// TODO Test sinking a ship, multiple ships
 // TODO Test ending a game when the ship is sunk
 // TODO Test game stats - ships hit, ships remaining
 
