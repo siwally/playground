@@ -91,5 +91,17 @@ func TestGameConfig(t *testing.T) {
 		t.Errorf("Should be able to create game with ships that conform to game config; err=%v", err)
 	}
 
-	// TODO - not fine
+	// not fine, ships don't fit on board of this size
+	ship1 = Ship{Coord{'B', 1}, topToBottom, 4}
+	ship2 = Ship{Coord{'A', 1}, leftToRight, 5}
+
+	cfg = GameConfig{gridStart: Coord{'A', 1}, gridWidth: 4, gridHeight: 4}
+
+	if _, err := NewGame(cfg, ship1, ship2); err == nil {
+		t.Errorf("Error should have been returned to indicate ship won't fit on grid of this size")
+	}
+
+	// TODO - not fine, not enough ships placed
+
+	// TODO - not fine, ships of wrong length - move across to ship types at this point
 }
