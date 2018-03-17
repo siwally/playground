@@ -10,46 +10,96 @@ type Facing int8
 const (
 	topToBottom Facing = iota
 	leftToRight Facing = iota
-	gridHeight  int    = 8
-	gridWidth   int    = 8
 )
 
-var gridStart = coord{'A', 1}
+// GameConfig holds details that don't change throughout the game, such as the size of the grid.
+type GameConfig struct {
+	gridWidth  int
+	gridHeight int
+	gridStart  Coord
+}
 
-// Ship represents the location of a ship.
+// Coord represents a single coordinate on the grid, e.g. {row: 'A', column: 3{}
+type Coord struct {
+	row    rune
+	column int
+}
+
+// Ship represents an individual ship and its location.
 type Ship struct {
-	start coord
+	start Coord
 	dir   Facing
 	len   int
 }
 
 // NewGame initialises and returns a new game, set up with the ships provided at their specified locations.
-func NewGame(ship Ship) (*Game, error) {
+func NewGame(cfg GameConfig, ships ...Ship) (game *Game, err error) {
 
-	shipCoords := map[coord]*Ship{}
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("Unexpected error setting up new game: %v", r)
+		}
+	}()
+
+	shipCoords := map[Coord]*Ship{}
+
+	for _, ship := range ships {
+		if err := plotCoords(&cfg, &ship, shipCoords); err != nil {
+			return nil, err
+		}
+	}
+
+	return &Game{cfg, ships, shipCoords, map[Coord]*Ship{}}, nil
+}
+
+// NewDefaultGame sets up a game using a standard configuration for the grid and ships
+func NewDefaultGame(ships ...Ship) (game *Game, err error) {
+
+	cfg := GameConfig{gridStart: Coord{'A', 1}, gridWidth: 8, gridHeight: 8}
+
+	return NewGame(cfg, ships...)
+}
+
+func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) error {
 
 	for i := 0; i < ship.len; i++ {
 
-		pos := getCoord(&ship, i)
+		pos := getCoord(ship, i)
 
-		if err := validateCoord(pos); err != nil {
-			return nil, err
+		if err := validateCoord(cfg, pos); err != nil {
+			return err
 		}
 
-		shipCoords[pos] = &ship
+		if _, dup := shipCoords[pos]; dup {
+			return fmt.Errorf("Unable to place ship at %v, as ship already at this coordinate", pos)
+		}
+
+		shipCoords[pos] = ship
 	}
 
-	return &Game{ship, shipCoords, map[coord]*Ship{}}, nil
+	return nil
+}
+
+func getCoord(ship *Ship, offset int) Coord {
+
+	switch ship.dir {
+	case topToBottom:
+		return Coord{rune(int(ship.start.row) + offset), ship.start.column}
+	case leftToRight:
+		return Coord{ship.start.row, ship.start.column + offset}
+	default:
+		panic(fmt.Sprintf("Unreachable condidtion in switch on ship.dir %v", ship.dir))
+	}
 }
 
 // +1 as ship placement is inclusive, i.e. a ship includes its starting position in its len
-func validateCoord(coord coord) error {
+func validateCoord(cfg *GameConfig, coord Coord) error {
 
-	if coord.row < gridStart.row {
+	if coord.row < cfg.gridStart.row {
 		return fmt.Errorf("Ship exceeds top boundary at coordinate %v", coord)
 	}
 
-	if int(coord.row)-int(gridStart.row)+1 > gridWidth {
+	if int(coord.row)-int(cfg.gridStart.row)+1 > cfg.gridWidth {
 		return fmt.Errorf("Ship exceeds lower boundary at coordinate %v", coord)
 	}
 
@@ -57,21 +107,9 @@ func validateCoord(coord coord) error {
 		return fmt.Errorf("Ship %v exceeds left-hand boundary", coord)
 	}
 
-	if coord.column-gridStart.column+1 > gridHeight {
+	if coord.column-cfg.gridStart.column+1 > cfg.gridHeight {
 		return fmt.Errorf("Ship %v exceeds right-hand boundary", coord)
 	}
 
 	return nil
-}
-
-func getCoord(ship *Ship, offset int) coord {
-
-	switch ship.dir {
-	case topToBottom:
-		return coord{rune(int(ship.start.row) + offset), ship.start.column}
-	case leftToRight:
-		return coord{ship.start.row, ship.start.column + offset}
-	default:
-		panic("Unreachable condidtion in switch on ship.dir")
-	}
 }

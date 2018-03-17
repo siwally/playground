@@ -2,17 +2,13 @@ package bships
 
 // Game represents a game of Batteships that is in progress.
 type Game struct {
-	ship            Ship
-	remaining, hits map[coord]*Ship
-}
-
-type coord struct {
-	row    rune
-	column int
+	config          GameConfig
+	ships           []Ship
+	remaining, hits map[Coord]*Ship
 }
 
 // Play executes a move against a player's grid
-func (game *Game) Play(move coord) (bool, error) {
+func (game *Game) Play(move Coord) (bool, error) {
 
 	if _, alreadyHit := game.hits[move]; alreadyHit {
 		return true, nil
