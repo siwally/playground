@@ -7,21 +7,21 @@ import (
 func TestHorizontalShipSetup(t *testing.T) {
 
 	// fine, up to right-hand edge
-	ship := Ship{Coord{'D', 6}, leftToRight, 3}
+	ship := Ship{Coord{'D', 6}, leftToRight, dinky}
 
 	if _, err := NewDefaultGame(ship); err != nil {
 		t.Errorf("Should be able to create game with ship up to right-hand boundary; received err: %v", err)
 	}
 
 	// not fine, past right-hand edge
-	ship = Ship{Coord{'D', 6}, leftToRight, 4}
+	ship = Ship{Coord{'D', 6}, leftToRight, mid}
 
 	if _, err := NewDefaultGame(ship); err == nil {
 		t.Errorf("Should not be able to create game with ship end past right-hand boundary")
 	}
 
 	// not fine, starting position too low
-	ship = Ship{Coord{'D', 0}, leftToRight, 4}
+	ship = Ship{Coord{'D', 0}, leftToRight, mid}
 
 	if _, err := NewDefaultGame(ship); err == nil {
 		t.Errorf("Should not be able to create game with ship start point past left-hand boundary")
@@ -31,21 +31,21 @@ func TestHorizontalShipSetup(t *testing.T) {
 func TestVerticalShipSetup(t *testing.T) {
 
 	// fine, up to bottom edge
-	ship := Ship{Coord{'C', 1}, topToBottom, 6}
+	ship := Ship{Coord{'D', 1}, topToBottom, grande}
 
 	if _, err := NewDefaultGame(ship); err != nil {
 		t.Errorf("Should be able to create game with ship up to bottom boundary; received err: %v", err)
 	}
 
 	// not fine, past right-hand edge
-	ship = Ship{Coord{'C', 1}, topToBottom, 7}
+	ship = Ship{Coord{'E', 1}, topToBottom, grande}
 
 	if _, err := NewDefaultGame(ship); err == nil {
 		t.Errorf("Should not be able to create game with ship end past bottom boundary")
 	}
 
 	// not fine, starting position too low
-	ship = Ship{Coord{'1', 1}, topToBottom, 4}
+	ship = Ship{Coord{'1', 1}, topToBottom, mid}
 
 	if _, err := NewDefaultGame(ship); err == nil {
 		t.Errorf("Should not be able to create game with ship start point past top boundary")
@@ -55,16 +55,16 @@ func TestVerticalShipSetup(t *testing.T) {
 func TestMultipleShips(t *testing.T) {
 
 	// fine, not overlapping
-	ship1 := Ship{Coord{'A', 2}, leftToRight, 4}
-	ship2 := Ship{Coord{'C', 6}, topToBottom, 3}
+	ship1 := Ship{Coord{'A', 2}, leftToRight, mid}
+	ship2 := Ship{Coord{'C', 6}, topToBottom, dinky}
 
 	if _, err := NewDefaultGame(ship1, ship2); err != nil {
 		t.Errorf("Error returned when setting up game with multiple ships: %v", err)
 	}
 
 	// not fine, as ships overlap in their middles
-	ship2 = Ship{Coord{'B', 3}, topToBottom, 3}
-	ship1 = Ship{Coord{'C', 2}, leftToRight, 3}
+	ship2 = Ship{Coord{'B', 3}, topToBottom, dinky}
+	ship1 = Ship{Coord{'C', 2}, leftToRight, dinky}
 
 	if _, err := NewDefaultGame(ship1, ship2); err == nil {
 		t.Errorf("Error should have been returned when ship coords overlap")
@@ -72,7 +72,7 @@ func TestMultipleShips(t *testing.T) {
 }
 
 func TestArgsOutofBounds(t *testing.T) {
-	ship := Ship{Coord{'B', 3}, -45, 3}
+	ship := Ship{Coord{'B', 3}, -45, dinky}
 
 	if _, err := NewDefaultGame(ship); err == nil {
 		t.Errorf("Error should have been returned when ship Facing value out of bounds")
@@ -82,18 +82,18 @@ func TestArgsOutofBounds(t *testing.T) {
 func TestGameConfig(t *testing.T) {
 
 	// fine, correct number of ships and ships the right lenght
-	ship1 := Ship{Coord{'B', 1}, topToBottom, 4}
-	ship2 := Ship{Coord{'A', 1}, leftToRight, 5}
+	ship1 := Ship{Coord{'B', 1}, topToBottom, mid}
+	ship2 := Ship{Coord{'A', 1}, leftToRight, grande}
 
 	cfg := GameConfig{gridStart: Coord{'A', 1}, gridWidth: 8, gridHeight: 8}
 
 	if _, err := NewGame(cfg, ship1, ship2); err != nil {
-		t.Errorf("Should be able to create game with ships that conform to game config; err=%v", err)
+		t.Errorf("Should be able to create game with ships that conform to game config grid size; err=%v", err)
 	}
 
 	// not fine, ships don't fit on board of this size
-	ship1 = Ship{Coord{'B', 1}, topToBottom, 4}
-	ship2 = Ship{Coord{'A', 1}, leftToRight, 5}
+	ship1 = Ship{Coord{'B', 1}, topToBottom, mid}
+	ship2 = Ship{Coord{'A', 1}, leftToRight, grande}
 
 	cfg = GameConfig{gridStart: Coord{'A', 1}, gridWidth: 4, gridHeight: 4}
 
@@ -101,7 +101,14 @@ func TestGameConfig(t *testing.T) {
 		t.Errorf("Error should have been returned to indicate ship won't fit on grid of this size")
 	}
 
-	// TODO - not fine, not enough ships placed
+	// not fine, ships of wrong type even though enough ships
+	ship1 = Ship{Coord{'B', 1}, topToBottom, mid}
+	ship2 = Ship{Coord{'A', 1}, leftToRight, grande}
 
-	// TODO - not fine, ships of wrong length - move across to ship types at this point
+	shipTypes := map[ShipType]int{ShipType{name: "Destroyer", len: 5}: 2}
+	cfg = GameConfig{gridStart: Coord{'A', 1}, gridWidth: 8, gridHeight: 8, shipTypes: shipTypes}
+
+	if _, err := NewGame(cfg, ship1, ship2); err == nil {
+		t.Errorf("Error should have been returned to indicate not enough ships of specified type")
+	}
 }

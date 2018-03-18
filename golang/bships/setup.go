@@ -17,20 +17,31 @@ type GameConfig struct {
 	gridWidth  int
 	gridHeight int
 	gridStart  Coord
+	shipTypes  map[ShipType]int
 }
 
-// Coord represents a single coordinate on the grid, e.g. {row: 'A', column: 3{}
+// Coord represents a single coordinate on the grid, e.g. {row: 'A', column: 3.
 type Coord struct {
 	row    rune
 	column int
 }
 
+// ShipType represents a type of ship and its properties, such as its size.
+type ShipType struct {
+	name string
+	len  int
+}
+
 // Ship represents an individual ship and its location.
 type Ship struct {
-	start Coord
-	dir   Facing
-	len   int
+	start    Coord
+	dir      Facing
+	shipType ShipType
 }
+
+var dinky = ShipType{name: "dinky", len: 3}
+var mid = ShipType{name: "mid", len: 4}
+var grande = ShipType{name: "grande", len: 5}
 
 // NewGame initialises and returns a new game, set up with the ships provided at their specified locations.
 func NewGame(cfg GameConfig, ships ...Ship) (game *Game, err error) {
@@ -42,11 +53,18 @@ func NewGame(cfg GameConfig, ships ...Ship) (game *Game, err error) {
 	}()
 
 	shipCoords := map[Coord]*Ship{}
+	shipsFound := map[ShipType]int{}
 
 	for _, ship := range ships {
 		if err := plotCoords(&cfg, &ship, shipCoords); err != nil {
 			return nil, err
 		}
+
+		shipsFound[ship.shipType]++
+	}
+
+	if cfg.shipTypes != nil && !shipTypesMatch(cfg.shipTypes, shipsFound) {
+		return nil, fmt.Errorf("Ship types supplied do not match those in game config")
 	}
 
 	return &Game{cfg, ships, shipCoords, map[Coord]*Ship{}}, nil
@@ -62,7 +80,7 @@ func NewDefaultGame(ships ...Ship) (game *Game, err error) {
 
 func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) error {
 
-	for i := 0; i < ship.len; i++ {
+	for i := 0; i < ship.shipType.len; i++ {
 
 		pos := getCoord(ship, i)
 
@@ -112,4 +130,22 @@ func validateCoord(cfg *GameConfig, coord Coord) error {
 	}
 
 	return nil
+}
+
+func shipTypesMatch(types1, types2 map[ShipType]int) bool {
+
+	if len(types1) != len(types2) {
+		return false
+	}
+
+	for k, v := range types1 {
+
+		v2, found := types2[k]
+
+		if !found || v != v2 {
+			return false
+		}
+	}
+
+	return false
 }

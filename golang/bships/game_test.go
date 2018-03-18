@@ -5,7 +5,7 @@ import (
 )
 
 func TestVerticalShip(t *testing.T) {
-	ship := Ship{Coord{'B', 5}, topToBottom, 4}
+	ship := Ship{Coord{'B', 5}, topToBottom, mid}
 	game, _ := NewDefaultGame(ship)
 
 	checkHitOrMiss(game, Coord{'B', 5}, t, true)
@@ -24,7 +24,7 @@ func TestVerticalShip(t *testing.T) {
 }
 
 func TestDuplicateHits(t *testing.T) {
-	ship := Ship{Coord{'B', 5}, topToBottom, 4}
+	ship := Ship{Coord{'B', 5}, topToBottom, mid}
 	game, _ := NewDefaultGame(ship)
 
 	checkHitOrMiss(game, Coord{'C', 5}, t, true)
@@ -36,7 +36,7 @@ func TestDuplicateHits(t *testing.T) {
 }
 
 func TestHorizontalShip(t *testing.T) {
-	ship := Ship{Coord{'B', 2}, leftToRight, 4}
+	ship := Ship{Coord{'B', 2}, leftToRight, mid}
 	game, _ := NewDefaultGame(ship)
 
 	checkHitOrMiss(game, Coord{'B', 2}, t, true)
