@@ -48,7 +48,7 @@ func NewGame(cfg GameConfig, ships ...Ship) (game *Game, err error) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("Unexpected error setting up new game: %v", r)
+			err = fmt.Errorf("Error setting up new game: %v", r)
 		}
 	}()
 
@@ -56,21 +56,18 @@ func NewGame(cfg GameConfig, ships ...Ship) (game *Game, err error) {
 	shipsFound := map[ShipType]int{}
 
 	for _, ship := range ships {
-		if err := plotCoords(&cfg, &ship, shipCoords); err != nil {
-			return nil, err
-		}
-
+		plotCoords(&cfg, &ship, shipCoords)
 		shipsFound[ship.shipType]++
 	}
 
-	if cfg.shipTypes != nil && !shipTypesMatch(cfg.shipTypes, shipsFound) {
-		return nil, fmt.Errorf("Ship types supplied do not match those in game config")
+	if cfg.shipTypes != nil {
+		validateShipTypes(cfg.shipTypes, shipsFound)
 	}
 
 	return &Game{cfg, ships, shipCoords, map[Coord]*Ship{}}, nil
 }
 
-// NewDefaultGame sets up a game using a standard configuration for the grid and ships
+// NewDefaultGame sets up a game using a standard configuration for the grid and no restriction on ship types.
 func NewDefaultGame(ships ...Ship) (game *Game, err error) {
 
 	cfg := GameConfig{gridStart: Coord{'A', 1}, gridWidth: 8, gridHeight: 8}
@@ -78,24 +75,19 @@ func NewDefaultGame(ships ...Ship) (game *Game, err error) {
 	return NewGame(cfg, ships...)
 }
 
-func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) error {
+func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) {
 
 	for i := 0; i < ship.shipType.len; i++ {
 
 		pos := getCoord(ship, i)
-
-		if err := validateCoord(cfg, pos); err != nil {
-			return err
-		}
+		validateCoord(cfg, pos)
 
 		if _, dup := shipCoords[pos]; dup {
-			return fmt.Errorf("Unable to place ship at %v, as ship already at this coordinate", pos)
+			panic(fmt.Sprintf("Unable to place ship at %v, as ship already at this coordinate", pos))
 		}
 
 		shipCoords[pos] = ship
 	}
-
-	return nil
 }
 
 func getCoord(ship *Ship, offset int) Coord {
@@ -111,31 +103,31 @@ func getCoord(ship *Ship, offset int) Coord {
 }
 
 // +1 as ship placement is inclusive, i.e. a ship includes its starting position in its len
-func validateCoord(cfg *GameConfig, coord Coord) error {
+func validateCoord(cfg *GameConfig, coord Coord) {
 
 	if coord.row < cfg.gridStart.row {
-		return fmt.Errorf("Ship exceeds top boundary at coordinate %v", coord)
+		panic(fmt.Sprintf("Ship exceeds top boundary at coordinate %v", coord))
 	}
 
 	if int(coord.row)-int(cfg.gridStart.row)+1 > cfg.gridWidth {
-		return fmt.Errorf("Ship exceeds lower boundary at coordinate %v", coord)
+		panic(fmt.Errorf("Ship exceeds lower boundary at coordinate %v", coord))
 	}
 
 	if coord.column < 1 {
-		return fmt.Errorf("Ship %v exceeds left-hand boundary", coord)
+		panic(fmt.Errorf("Ship %v exceeds left-hand boundary", coord))
 	}
 
 	if coord.column-cfg.gridStart.column+1 > cfg.gridHeight {
-		return fmt.Errorf("Ship %v exceeds right-hand boundary", coord)
+		panic(fmt.Errorf("Ship %v exceeds right-hand boundary", coord))
 	}
-
-	return nil
 }
 
-func shipTypesMatch(types1, types2 map[ShipType]int) bool {
+func validateShipTypes(types1, types2 map[ShipType]int) {
+
+	errMsg := "Ship types and numbers in game config do not match ships supplied for game"
 
 	if len(types1) != len(types2) {
-		return false
+		panic(errMsg)
 	}
 
 	for k, v := range types1 {
@@ -143,9 +135,7 @@ func shipTypesMatch(types1, types2 map[ShipType]int) bool {
 		v2, found := types2[k]
 
 		if !found || v != v2 {
-			return false
+			panic(errMsg)
 		}
 	}
-
-	return false
 }
