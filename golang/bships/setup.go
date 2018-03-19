@@ -16,7 +16,6 @@ const (
 type GameConfig struct {
 	gridWidth  int
 	gridHeight int
-	gridStart  Coord
 	shipTypes  map[ShipType]int
 }
 
@@ -38,6 +37,8 @@ type Ship struct {
 	dir      Facing
 	shipType ShipType
 }
+
+var gridStart = Coord{'A', 1}
 
 var dinky = ShipType{name: "dinky", len: 3}
 var mid = ShipType{name: "mid", len: 4}
@@ -64,13 +65,13 @@ func NewGame(cfg GameConfig, ships ...Ship) (game *Game, err error) {
 		validateShipTypes(cfg.shipTypes, shipsFound)
 	}
 
-	return &Game{cfg, ships, shipCoords, map[Coord]*Ship{}}, nil
+	return &Game{cfg, ships, shipCoords, map[Coord]*Ship{}, map[*Ship]int{}}, nil
 }
 
 // NewDefaultGame sets up a game using a standard configuration for the grid and no restriction on ship types.
 func NewDefaultGame(ships ...Ship) (game *Game, err error) {
 
-	cfg := GameConfig{gridStart: Coord{'A', 1}, gridWidth: 8, gridHeight: 8}
+	cfg := GameConfig{gridWidth: 8, gridHeight: 8}
 
 	return NewGame(cfg, ships...)
 }
@@ -105,11 +106,11 @@ func getCoord(ship *Ship, offset int) Coord {
 // +1 as ship placement is inclusive, i.e. a ship includes its starting position in its len
 func validateCoord(cfg *GameConfig, coord Coord) {
 
-	if coord.row < cfg.gridStart.row {
+	if coord.row < gridStart.row {
 		panic(fmt.Sprintf("Ship exceeds top boundary at coordinate %v", coord))
 	}
 
-	if int(coord.row)-int(cfg.gridStart.row)+1 > cfg.gridWidth {
+	if int(coord.row)-int(gridStart.row)+1 > cfg.gridWidth {
 		panic(fmt.Errorf("Ship exceeds lower boundary at coordinate %v", coord))
 	}
 
@@ -117,7 +118,7 @@ func validateCoord(cfg *GameConfig, coord Coord) {
 		panic(fmt.Errorf("Ship %v exceeds left-hand boundary", coord))
 	}
 
-	if coord.column-cfg.gridStart.column+1 > cfg.gridHeight {
+	if coord.column-gridStart.column+1 > cfg.gridHeight {
 		panic(fmt.Errorf("Ship %v exceeds right-hand boundary", coord))
 	}
 }

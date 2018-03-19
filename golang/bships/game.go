@@ -5,21 +5,42 @@ type Game struct {
 	config          GameConfig
 	ships           []Ship
 	remaining, hits map[Coord]*Ship
+	hitsByShip      map[*Ship]int
 }
 
-// Play executes a move against a player's grid
-func (game *Game) Play(move Coord) (bool, error) {
+// Result is the result of a player's move.
+type Result struct {
+	hit      bool
+	sunkShip *Ship
+}
+
+// Play executes a move against a player's grid.
+func (game *Game) Play(move Coord) (Result, error) {
 
 	if _, alreadyHit := game.hits[move]; alreadyHit {
-		return true, nil
+		return Result{true, game.getShipIfSunk(game.hits[move])}, nil
 	}
 
-	v, hit := game.remaining[move]
+	ship, hit := game.remaining[move]
 
-	if hit {
-		delete(game.remaining, move)
-		game.hits[move] = v
+	if !hit {
+		return Result{false, nil}, nil
 	}
 
-	return hit, nil
+	delete(game.remaining, move)
+	game.hits[move] = ship
+	game.hitsByShip[ship]++
+
+	sunk := game.getShipIfSunk(ship)
+
+	return Result{true, sunk}, nil
+}
+
+func (game *Game) getShipIfSunk(ship *Ship) (sunk *Ship) {
+
+	if game.hitsByShip[ship] == ship.shipType.len {
+		sunk = ship
+	}
+
+	return
 }
