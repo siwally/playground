@@ -2,43 +2,40 @@ package bships
 
 // Game represents a game of Batteships that is in progress.
 type Game struct {
-	config          GameConfig
-	ships           []Ship
+	config  GameConfig
+	players map[string]Player
+}
+
+// Player represents a player in a Game, with a record of the ships they are defending and hits against them.
+type Player struct {
 	remaining, hits map[Coord]*Ship
 	hitsByShip      map[*Ship]int
 }
 
-// Result is the result of a player's move.
-type Result struct {
-	hit      bool
-	sunkShip *Ship
-}
+// Attack executes a move against a player's grid.
+func (player *Player) Attack(move Coord) (bool, *Ship, error) {
 
-// Play executes a move against a player's grid.
-func (game *Game) Play(move Coord) (Result, error) {
-
-	if _, alreadyHit := game.hits[move]; alreadyHit {
-		return Result{true, game.getShipIfSunk(game.hits[move])}, nil
+	if ship, alreadyHit := player.hits[move]; alreadyHit {
+		return true, player.sunk(ship), nil
 	}
 
-	ship, hit := game.remaining[move]
+	ship, hit := player.remaining[move]
 
 	if !hit {
-		return Result{false, nil}, nil
+		return false, nil, nil
 	}
 
-	delete(game.remaining, move)
-	game.hits[move] = ship
-	game.hitsByShip[ship]++
+	// o.k., it's a new hit!
+	delete(player.remaining, move)
+	player.hits[move] = ship
+	player.hitsByShip[ship]++
 
-	sunk := game.getShipIfSunk(ship)
-
-	return Result{true, sunk}, nil
+	return true, player.sunk(ship), nil
 }
 
-func (game *Game) getShipIfSunk(ship *Ship) (sunk *Ship) {
+func (player *Player) sunk(ship *Ship) (sunk *Ship) {
 
-	if game.hitsByShip[ship] == ship.shipType.len {
+	if player.hitsByShip[ship] == ship.shipType.len {
 		sunk = ship
 	}
 

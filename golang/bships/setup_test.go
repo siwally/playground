@@ -85,9 +85,9 @@ func TestGameConfig(t *testing.T) {
 	ship1 := Ship{Coord{'B', 1}, topToBottom, mid}
 	ship2 := Ship{Coord{'A', 1}, leftToRight, grande}
 
-	cfg := GameConfig{gridWidth: 8, gridHeight: 8}
+	cfg := GameConfig{GridWidth: 8, GridHeight: 8}
 
-	if _, err := NewGame(cfg, ship1, ship2); err != nil {
+	if _, err := NewGame(cfg, "player1", ship1, ship2); err != nil {
 		t.Errorf("Should be able to create game with ships that conform to game config grid size; err=%v", err)
 	}
 
@@ -95,9 +95,9 @@ func TestGameConfig(t *testing.T) {
 	ship1 = Ship{Coord{'B', 1}, topToBottom, mid}
 	ship2 = Ship{Coord{'A', 1}, leftToRight, grande}
 
-	cfg = GameConfig{gridWidth: 4, gridHeight: 4}
+	cfg = GameConfig{GridWidth: 4, GridHeight: 4}
 
-	if _, err := NewGame(cfg, ship1, ship2); err == nil {
+	if _, err := NewGame(cfg, "player1", ship1, ship2); err == nil {
 		t.Errorf("Error should have been returned to indicate ship won't fit on grid of this size")
 	}
 
@@ -106,9 +106,9 @@ func TestGameConfig(t *testing.T) {
 	ship2 = Ship{Coord{'A', 1}, leftToRight, grande}
 
 	shipTypes := map[ShipType]int{ShipType{name: "Destroyer", len: 5}: 2}
-	cfg = GameConfig{gridWidth: 8, gridHeight: 8, shipTypes: shipTypes}
+	cfg = GameConfig{GridWidth: 8, GridHeight: 8, ShipTypes: shipTypes}
 
-	if _, err := NewGame(cfg, ship1, ship2); err == nil {
+	if _, err := NewGame(cfg, "player1", ship1, ship2); err == nil {
 		t.Errorf("Error should have been returned to indicate not enough ships of specified type")
 	}
 }
