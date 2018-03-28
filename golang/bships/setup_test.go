@@ -4,6 +4,16 @@ import (
 	"testing"
 )
 
+const playerName = "player1"
+
+var dinky = ShipType{name: "dinky", len: 3}
+var mid = ShipType{name: "mid", len: 4}
+var grande = ShipType{name: "grande", len: 5}
+
+// TODO Split adding a player to a game, but just use pointers for now and keep in memory.
+
+// TODO Even for HTTP server, can use variable to hold reference to game before persisting.
+
 func TestHorizontalShipSetup(t *testing.T) {
 
 	// fine, up to right-hand edge
@@ -87,7 +97,7 @@ func TestGameConfig(t *testing.T) {
 
 	cfg := GameConfig{GridWidth: 8, GridHeight: 8}
 
-	if _, err := NewGame(cfg, "player1", ship1, ship2); err != nil {
+	if _, err := NewGame(cfg, playerName, ship1, ship2); err != nil {
 		t.Errorf("Should be able to create game with ships that conform to game config grid size; err=%v", err)
 	}
 
@@ -97,7 +107,7 @@ func TestGameConfig(t *testing.T) {
 
 	cfg = GameConfig{GridWidth: 4, GridHeight: 4}
 
-	if _, err := NewGame(cfg, "player1", ship1, ship2); err == nil {
+	if _, err := NewGame(cfg, playerName, ship1, ship2); err == nil {
 		t.Errorf("Error should have been returned to indicate ship won't fit on grid of this size")
 	}
 
@@ -108,7 +118,15 @@ func TestGameConfig(t *testing.T) {
 	shipTypes := map[ShipType]int{ShipType{name: "Destroyer", len: 5}: 2}
 	cfg = GameConfig{GridWidth: 8, GridHeight: 8, ShipTypes: shipTypes}
 
-	if _, err := NewGame(cfg, "player1", ship1, ship2); err == nil {
+	if _, err := NewGame(cfg, playerName, ship1, ship2); err == nil {
 		t.Errorf("Error should have been returned to indicate not enough ships of specified type")
 	}
+}
+
+// Creates a game using a standard configuration for the grid and no restriction on ship types.
+func createTestGame(ships ...Ship) (game *Game, err error) {
+
+	cfg := GameConfig{GridWidth: 8, GridHeight: 8}
+
+	return NewGame(cfg, playerName, ships...)
 }

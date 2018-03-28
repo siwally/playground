@@ -25,7 +25,7 @@ func (player *Player) Attack(move Coord) (bool, *Ship, error) {
 		return false, nil, nil
 	}
 
-	// o.k., it's a new hit!
+	// o.k., it's a new hit
 	delete(player.remaining, move)
 	player.hits[move] = ship
 	player.hitsByShip[ship]++

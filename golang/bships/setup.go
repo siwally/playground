@@ -40,10 +40,6 @@ type Ship struct {
 
 var gridStart = Coord{'A', 1}
 
-var dinky = ShipType{name: "dinky", len: 3}
-var mid = ShipType{name: "mid", len: 4}
-var grande = ShipType{name: "grande", len: 5}
-
 // NewGame initialises and returns a new game, set up with the ships provided at their specified locations.
 func NewGame(cfg GameConfig, playerName string, ships ...Ship) (game *Game, err error) {
 
@@ -59,18 +55,20 @@ func NewGame(cfg GameConfig, playerName string, ships ...Ship) (game *Game, err 
 }
 
 func createPlayer(cfg *GameConfig, playerName string, ships ...Ship) Player {
+	shipsPlotted := map[ShipType]int{}
+
 	shipCoords := map[Coord]*Ship{}
-	shipsFound := map[ShipType]int{}
 	hitsByShip := map[*Ship]int{}
 
 	for _, ship := range ships {
+		shipsPlotted[ship.shipType]++
+
 		hitsByShip[&ship] = 0
 		plotCoords(cfg, &ship, shipCoords)
-		shipsFound[ship.shipType]++
 	}
 
 	if cfg.ShipTypes != nil {
-		validateShipTypes(cfg.ShipTypes, shipsFound)
+		validateShipTypes(cfg.ShipTypes, shipsPlotted)
 	}
 
 	return Player{remaining: shipCoords, hits: map[Coord]*Ship{}, hitsByShip: hitsByShip}
