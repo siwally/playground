@@ -66,7 +66,8 @@ func TestSinkingShip(t *testing.T) {
 		ShipTypes: map[ShipType]int{dinky: 1}}
 
 	ship := Ship{dir: topToBottom, shipType: dinky, start: Coord{'A', 1}}
-	game, _ := NewGame(cfg, playerName, ship)
+	game := NewGame(cfg)
+	game.AddPlayer(playerName, ship)
 
 	checkHitOrMiss(game, Coord{'A', 1}, t, true, nil)
 	checkHitOrMiss(game, Coord{'B', 1}, t, true, nil)

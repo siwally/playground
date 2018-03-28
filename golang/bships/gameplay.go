@@ -1,11 +1,5 @@
 package bships
 
-// Game represents a game of Batteships that is in progress.
-type Game struct {
-	config  GameConfig
-	players map[string]Player
-}
-
 // Player represents a player in a Game, with a record of the ships they are defending and hits against them.
 type Player struct {
 	remaining, hits map[Coord]*Ship
@@ -19,16 +13,12 @@ func (player *Player) Attack(move Coord) (bool, *Ship, error) {
 		return true, player.sunk(ship), nil
 	}
 
-	ship, hit := player.remaining[move]
-
-	if !hit {
+	if _, hit := player.remaining[move]; !hit {
 		return false, nil, nil
 	}
 
-	// o.k., it's a new hit
-	delete(player.remaining, move)
-	player.hits[move] = ship
-	player.hitsByShip[ship]++
+	ship, _ := player.remaining[move]
+	player.recordHit(move, ship)
 
 	return true, player.sunk(ship), nil
 }
@@ -40,4 +30,10 @@ func (player *Player) sunk(ship *Ship) (sunk *Ship) {
 	}
 
 	return
+}
+
+func (player *Player) recordHit(move Coord, ship *Ship) {
+	delete(player.remaining, move)
+	player.hits[move] = ship
+	player.hitsByShip[ship]++
 }

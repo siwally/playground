@@ -4,25 +4,17 @@ import (
 	"fmt"
 )
 
-// Facing indicates the direction of the ship on the grid, from its starting coordinate, e.g. from top to bottom.
-type Facing int8
-
-const (
-	topToBottom Facing = iota
-	leftToRight Facing = iota
-)
+// Game represents a game of Batteships that is in progress.
+type Game struct {
+	config  GameConfig
+	players map[string]Player
+}
 
 // GameConfig holds details that don't change throughout the game, such as the size of the grid.
 type GameConfig struct {
 	GridWidth  int
 	GridHeight int
 	ShipTypes  map[ShipType]int
-}
-
-// Coord represents a single coordinate on the grid, e.g. {row: 'A', column: 3.
-type Coord struct {
-	row    rune
-	column int
 }
 
 // ShipType represents a type of ship and its properties, such as its size.
@@ -38,55 +30,71 @@ type Ship struct {
 	shipType ShipType
 }
 
+// Coord represents a single coordinate on the grid, e.g. {row: 'A', column: 3.
+type Coord struct {
+	row    rune
+	column int
+}
+
+// Facing indicates the direction of the ship on the grid, from its starting coordinate, e.g. from top to bottom.
+type Facing int8
+
+const (
+	topToBottom Facing = iota
+	leftToRight Facing = iota
+)
+
 var gridStart = Coord{'A', 1}
 
-// NewGame initialises and returns a new game, set up with the ships provided at their specified locations.
-func NewGame(cfg GameConfig, playerName string, ships ...Ship) (game *Game, err error) {
+// NewGame initialises and returns a new game.
+func NewGame(cfg GameConfig) (game *Game) {
 
+	return &Game{cfg, map[string]Player{}}
+}
+
+// AddPlayer adds a player and their grid of ships into the game.
+func (game *Game) AddPlayer(playerName string, ships ...Ship) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("Error setting up new game: %v", r)
+			err = fmt.Errorf("Error adding player %v: %v", playerName, r)
 		}
 	}()
 
-	player := createPlayer(&cfg, playerName, ships...)
+	player := Player{}
 
-	return &Game{cfg, map[string]Player{playerName: player}}, nil
+	plotted := player.plotShips(&game.config, ships...)
+	validateShipTypes(game.config.ShipTypes, plotted)
+
+	game.players[playerName] = player
+
+	return
 }
 
-func createPlayer(cfg *GameConfig, playerName string, ships ...Ship) Player {
-	shipsPlotted := map[ShipType]int{}
+func (player *Player) plotShips(cfg *GameConfig, ships ...Ship) (plotted map[ShipType]int) {
+	plotted = map[ShipType]int{}
 
 	shipCoords := map[Coord]*Ship{}
 	hitsByShip := map[*Ship]int{}
 
 	for _, ship := range ships {
-		shipsPlotted[ship.shipType]++
+		plotted[ship.shipType]++
 
 		hitsByShip[&ship] = 0
 		plotCoords(cfg, &ship, shipCoords)
 	}
 
-	if cfg.ShipTypes != nil {
-		validateShipTypes(cfg.ShipTypes, shipsPlotted)
-	}
+	player.remaining = shipCoords
+	player.hits = map[Coord]*Ship{}
+	player.hitsByShip = hitsByShip
 
-	return Player{remaining: shipCoords, hits: map[Coord]*Ship{}, hitsByShip: hitsByShip}
-}
-
-// NewDefaultGame sets up a game using a standard configuration for the grid and no restriction on ship types.
-func NewDefaultGame(ships ...Ship) (game *Game, err error) {
-
-	cfg := GameConfig{GridWidth: 8, GridHeight: 8}
-
-	return NewGame(cfg, "player1", ships...)
+	return
 }
 
 func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) {
 
 	for i := 0; i < ship.shipType.len; i++ {
 
-		pos := getCoord(ship, i)
+		pos := ship.getCoord(i)
 		validateCoord(cfg, pos)
 
 		if _, dup := shipCoords[pos]; dup {
@@ -97,7 +105,7 @@ func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) {
 	}
 }
 
-func getCoord(ship *Ship, offset int) Coord {
+func (ship *Ship) getCoord(offset int) Coord {
 
 	switch ship.dir {
 	case topToBottom:
@@ -129,17 +137,21 @@ func validateCoord(cfg *GameConfig, coord Coord) {
 	}
 }
 
-func validateShipTypes(types1, types2 map[ShipType]int) {
+func validateShipTypes(required, actual map[ShipType]int) {
+
+	if required == nil {
+		return
+	}
 
 	errMsg := "Ship types and numbers in game config do not match ships supplied for game"
 
-	if len(types1) != len(types2) {
+	if len(required) != len(actual) {
 		panic(errMsg)
 	}
 
-	for k, v := range types1 {
+	for k, v := range required {
 
-		v2, found := types2[k]
+		v2, found := actual[k]
 
 		if !found || v != v2 {
 			panic(errMsg)
