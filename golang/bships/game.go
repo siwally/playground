@@ -61,55 +61,12 @@ func (game *Game) AddPlayer(playerName string, ships ...Ship) (err error) {
 	}()
 
 	player := Player{}
-
-	shipTypes, coords := player.plotShips(&game.config, ships...)
+	shipTypes, coords := player.PlotShips(&game.config, ships...)
 
 	validateShipTypes(game.config.ShipTypes, shipTypes)
 	validateCoords(&game.config, coords)
 
 	game.players[playerName] = player
-
-	return
-}
-
-// TODO move this logic out to gameplay, as holds internal state about ships that have been hit
-func (player *Player) plotShips(cfg *GameConfig, ships ...Ship) (plotted map[ShipType]int, coords map[Coord]*Ship) {
-	plotted = map[ShipType]int{}
-	coords = map[Coord]*Ship{}
-
-	hitsByShip := map[*Ship]int{}
-
-	for _, ship := range ships {
-		plotted[ship.shipType]++
-
-		hitsByShip[&ship] = 0
-		plotCoords(cfg, &ship, coords)
-	}
-
-	player.remaining = coords
-	player.hits = map[Coord]*Ship{}
-	player.hitsByShip = hitsByShip
-
-	return
-}
-
-func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) (coords []Coord) {
-
-	coords = make([]Coord, ship.shipType.len)
-
-	for i := 0; i < ship.shipType.len; i++ {
-
-		pos := ship.getCoord(i)
-		coords[i] = pos
-
-		//validateCoord(cfg, pos)
-
-		if _, dup := shipCoords[pos]; dup {
-			panic(fmt.Sprintf("Unable to place ship at %v, as ship already at this coordinate", pos))
-		}
-
-		shipCoords[pos] = ship
-	}
 
 	return
 }
