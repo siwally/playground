@@ -70,6 +70,7 @@ func (game *Game) AddPlayer(playerName string, ships ...Ship) (err error) {
 	return
 }
 
+// TODO move this logic out to gameplay, as holds internal state about ships that have been hit
 func (player *Player) plotShips(cfg *GameConfig, ships ...Ship) (plotted map[ShipType]int) {
 	plotted = map[ShipType]int{}
 
