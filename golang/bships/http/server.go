@@ -1,25 +1,33 @@
-package main
+package http
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
+
+const gamePath string = "/bships/game"
 
 // GameHandler groups the HTTP handler functions
 type GameHandler struct {
 }
 
-func main() {
-	http.Handle("/bships/game", GameHandler{})
-	http.ListenAndServe(":8080", nil)
+// StartServer creates an HTTP server listening for Battleships game set-up and move requests.
+func StartServer(addr string) {
+	log.Printf("Starting server at %v; handling %v\n", addr, gamePath)
+
+	http.Handle(gamePath, GameHandler{})
+	http.ListenAndServe(addr, nil)
 }
 
 func (GameHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Received reqeust %v\n", r)
+	log.Printf("Handling reqeust %v\n", r)
 
-	// TOOD Add logging
+	fmt.Printf("Handling reqeust %v\n", r)
 
 	// TODO Take GameConfig as JSON input and use POST.  Create accompanying tests and can look in the logs at the payload.
 
 	// TOOD Add player, which should include their name and ships - will involve changing core bships game.
+
+	log.Println("Finished handling reqeust")
 }
