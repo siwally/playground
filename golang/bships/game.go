@@ -62,8 +62,10 @@ func (game *Game) AddPlayer(playerName string, ships ...Ship) (err error) {
 
 	player := Player{}
 
-	plotted := player.plotShips(&game.config, ships...)
-	validateShipTypes(game.config.ShipTypes, plotted)
+	shipTypes, coords := player.plotShips(&game.config, ships...)
+
+	validateShipTypes(game.config.ShipTypes, shipTypes)
+	validateCoords(&game.config, coords)
 
 	game.players[playerName] = player
 
@@ -71,32 +73,36 @@ func (game *Game) AddPlayer(playerName string, ships ...Ship) (err error) {
 }
 
 // TODO move this logic out to gameplay, as holds internal state about ships that have been hit
-func (player *Player) plotShips(cfg *GameConfig, ships ...Ship) (plotted map[ShipType]int) {
+func (player *Player) plotShips(cfg *GameConfig, ships ...Ship) (plotted map[ShipType]int, coords map[Coord]*Ship) {
 	plotted = map[ShipType]int{}
+	coords = map[Coord]*Ship{}
 
-	shipCoords := map[Coord]*Ship{}
 	hitsByShip := map[*Ship]int{}
 
 	for _, ship := range ships {
 		plotted[ship.shipType]++
 
 		hitsByShip[&ship] = 0
-		plotCoords(cfg, &ship, shipCoords)
+		plotCoords(cfg, &ship, coords)
 	}
 
-	player.remaining = shipCoords
+	player.remaining = coords
 	player.hits = map[Coord]*Ship{}
 	player.hitsByShip = hitsByShip
 
 	return
 }
 
-func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) {
+func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) (coords []Coord) {
+
+	coords = make([]Coord, ship.shipType.len)
 
 	for i := 0; i < ship.shipType.len; i++ {
 
 		pos := ship.getCoord(i)
-		validateCoord(cfg, pos)
+		coords[i] = pos
+
+		//validateCoord(cfg, pos)
 
 		if _, dup := shipCoords[pos]; dup {
 			panic(fmt.Sprintf("Unable to place ship at %v, as ship already at this coordinate", pos))
@@ -104,6 +110,8 @@ func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) {
 
 		shipCoords[pos] = ship
 	}
+
+	return
 }
 
 func (ship *Ship) getCoord(offset int) Coord {
@@ -119,22 +127,25 @@ func (ship *Ship) getCoord(offset int) Coord {
 }
 
 // +1 as ship placement is inclusive, i.e. a ship includes its starting position in its len
-func validateCoord(cfg *GameConfig, coord Coord) {
+func validateCoords(cfg *GameConfig, coords map[Coord]*Ship) {
 
-	if coord.row < gridStart.row {
-		panic(fmt.Sprintf("Ship exceeds top boundary at coordinate %v", coord))
-	}
+	for coord := range coords {
 
-	if int(coord.row)-int(gridStart.row)+1 > cfg.GridWidth {
-		panic(fmt.Errorf("Ship exceeds lower boundary at coordinate %v", coord))
-	}
+		if coord.row < gridStart.row {
+			panic(fmt.Sprintf("Ship exceeds top boundary at coordinate %v", coord))
+		}
 
-	if coord.column < 1 {
-		panic(fmt.Errorf("Ship %v exceeds left-hand boundary", coord))
-	}
+		if int(coord.row)-int(gridStart.row)+1 > cfg.GridWidth {
+			panic(fmt.Errorf("Ship exceeds lower boundary at coordinate %v", coord))
+		}
 
-	if coord.column-gridStart.column+1 > cfg.GridHeight {
-		panic(fmt.Errorf("Ship %v exceeds right-hand boundary", coord))
+		if coord.column < 1 {
+			panic(fmt.Errorf("Ship %v exceeds left-hand boundary", coord))
+		}
+
+		if coord.column-gridStart.column+1 > cfg.GridHeight {
+			panic(fmt.Errorf("Ship %v exceeds right-hand boundary", coord))
+		}
 	}
 }
 
