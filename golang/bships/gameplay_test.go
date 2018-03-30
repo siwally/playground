@@ -63,7 +63,7 @@ func TestHorizontalShip(t *testing.T) {
 func TestSinkingShip(t *testing.T) {
 	cfg := GameConfig{GridHeight: 10,
 		GridWidth: 10,
-		ShipTypes: map[ShipType]int{dinky: 1}}
+		shipTypes: map[ShipType]int{dinky: 1}}
 
 	ship := Ship{dir: topToBottom, shipType: dinky, start: Coord{'A', 1}}
 	game := NewGame(cfg)
@@ -77,12 +77,6 @@ func TestSinkingShip(t *testing.T) {
 	checkHitOrMiss(game, Coord{'C', 1}, t, true, &ship)
 	checkHitOrMiss(game, Coord{'B', 1}, t, true, &ship)
 }
-
-// TODO General tidy-up of logic and use of pointers versus values.
-
-// TODO Check things in the right place between files and structs.
-
-// TODO Test multiple ships and winning.
 
 func checkHitOrMiss(game *Game, move Coord, t *testing.T, expected bool, expSunk *Ship) {
 

@@ -14,7 +14,7 @@ type Game struct {
 type GameConfig struct {
 	GridWidth  int
 	GridHeight int
-	ShipTypes  map[ShipType]int
+	shipTypes  map[ShipType]int
 }
 
 // ShipType represents a type of ship and its properties, such as its length.
@@ -63,7 +63,7 @@ func (game *Game) AddPlayer(playerName string, ships ...Ship) (err error) {
 	player := Player{}
 	shipTypes, coords := player.PlotShips(&game.config, ships...)
 
-	validateShipTypes(game.config.ShipTypes, shipTypes)
+	validateShipTypes(game.config.shipTypes, shipTypes)
 	validateCoords(&game.config, coords)
 
 	game.players[playerName] = player

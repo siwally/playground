@@ -1,20 +1,26 @@
 package http
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/siwally/golang/bships"
 )
 
 func TestCreateGame(t *testing.T) {
 
-	// TODO Convert GameConfig to JSON and post data
-	// cfg := bships.GameConfig{GridHeight: 10, GridWidth: 10}
+	cfg := bships.GameConfig{GridWidth: 10, GridHeight: 10}
+	json, err := json.Marshal(cfg)
 
-	// bytes, _ := json.Marshal(cfg)
+	if err != nil {
+		t.Fatalf("Unable to encode request data for test: %v", err)
+	}
 
-	req, err := http.NewRequest("POST", "http://localhost:8080/bships/game", nil)
+	req, err := http.NewRequest("POST", "http://localhost:8080/bships/game", bytes.NewReader(json))
 
 	if err != nil {
 		t.Fatal(err)
@@ -30,7 +36,7 @@ func TestCreateGame(t *testing.T) {
 	}
 }
 
-func TestServer(t *testing.T) {
+func DontTestServer(t *testing.T) {
 
 	go StartServer(":8080")
 

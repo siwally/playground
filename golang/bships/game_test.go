@@ -10,10 +10,6 @@ var dinky = ShipType{name: "dinky", len: 3}
 var mid = ShipType{name: "mid", len: 4}
 var grande = ShipType{name: "grande", len: 5}
 
-// TODO Split adding a player to a game, but just use pointers for now and keep in memory.
-
-// TODO Even for HTTP server, can use variable to hold reference to game before persisting.
-
 func TestHorizontalShipSetup(t *testing.T) {
 
 	// fine, up to right-hand edge
@@ -117,7 +113,7 @@ func TestGameConfig(t *testing.T) {
 	ship2 = Ship{Coord{'A', 1}, leftToRight, grande}
 
 	shipTypes := map[ShipType]int{ShipType{name: "Destroyer", len: 5}: 2}
-	cfg = GameConfig{GridWidth: 8, GridHeight: 8, ShipTypes: shipTypes}
+	cfg = GameConfig{GridWidth: 8, GridHeight: 8, shipTypes: shipTypes}
 
 	game = NewGame(cfg)
 	if err := game.AddPlayer(playerName, ship1, ship2); err == nil {
