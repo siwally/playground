@@ -8,7 +8,7 @@ type Player struct {
 	hitsByShip      map[*Ship]int
 }
 
-// PlotShips plots the ships onto the player's grid and returns the ship types found and the full ship coordinates
+// PlotShips plots the ships onto the player's grid and returns the ship types found and the full ship coordinates.
 func (player *Player) PlotShips(cfg *GameConfig, ships ...Ship) (types map[ShipType]int, coords map[Coord]*Ship) {
 	types = map[ShipType]int{}
 	coords = map[Coord]*Ship{}

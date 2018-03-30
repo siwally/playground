@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Game represents a game of Batteships that is in progress.
+// Game represents a game of Batteships.
 type Game struct {
 	config  GameConfig
 	players map[string]Player
@@ -17,20 +17,20 @@ type GameConfig struct {
 	ShipTypes  map[ShipType]int
 }
 
-// ShipType represents a type of ship and its properties, such as its size.
+// ShipType represents a type of ship and its properties, such as its length.
 type ShipType struct {
 	name string
 	len  int
 }
 
-// Ship represents an individual ship and its location.
+// Ship represents an individual ship and its properties.
 type Ship struct {
 	start    Coord
 	dir      Facing
 	shipType ShipType
 }
 
-// Coord represents a single coordinate on the grid, e.g. {row: 'A', column: 3.
+// Coord represents a single coordinate on a player's grid, e.g. {row: 'A', column: 3}.
 type Coord struct {
 	row    rune
 	column int
@@ -112,7 +112,7 @@ func validateShipTypes(required, actual map[ShipType]int) {
 		return
 	}
 
-	errMsg := "Ship types and numbers in game config do not match ships supplied for game"
+	errMsg := "Ship types and numbers in GameConfig do not match ships supplied for Player"
 
 	if len(required) != len(actual) {
 		panic(errMsg)
