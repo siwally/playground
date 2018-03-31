@@ -12,24 +12,21 @@ import (
 )
 
 func TestCreateGame(t *testing.T) {
+	json := createGameJSON(t, 10, 10)
+	req, _ := http.NewRequest("POST", "/bships/games", bytes.NewReader(json))
 
-	cfg := bships.GameConfig{GridWidth: 10, GridHeight: 10}
-	json, err := json.Marshal(cfg)
+	rec := serve(req, GameHandler)
 
-	if err != nil {
-		t.Fatalf("Unable to encode request data for test: %v", err)
+	if status := rec.Code; status != http.StatusOK {
+		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
 	}
+}
 
-	req, err := http.NewRequest("POST", "http://localhost:8080/bships/game", bytes.NewReader(json))
+func TestAddPlayer(t *testing.T) {
+	json := createPlayerJSON(t)
+	req, _ := http.NewRequest("POST", "/bships/games/players", bytes.NewReader(json))
 
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rec := httptest.NewRecorder()
-	handler := http.HandlerFunc(GameHandler)
-
-	handler.ServeHTTP(rec, req)
+	rec := serve(req, PlayerHandler)
 
 	if status := rec.Code; status != http.StatusOK {
 		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
@@ -47,4 +44,39 @@ func DontTestServer(t *testing.T) {
 	}
 
 	resp.Write(os.Stdout)
+}
+
+// Small utitlity methods to simplify tests.
+
+func createGameJSON(t *testing.T, gridWidth, gridHeight int) []byte {
+	cfg := bships.GameConfig{GridWidth: 10, GridHeight: 10}
+	json, err := json.Marshal(cfg)
+
+	if err != nil {
+		t.Fatalf("Unable to encode request data for test: %v", err)
+	}
+
+	return json
+}
+
+func createPlayerJSON(t *testing.T) []byte {
+
+	req := PlayerReq{PlayerName: "p1"} // , Ships: []bships.Ship{}
+
+	json, err := json.Marshal(req)
+
+	if err != nil {
+		t.Fatalf("Unable to encode request data for test: %v", err)
+	}
+
+	return json
+}
+
+func serve(req *http.Request, handlerFn func(http.ResponseWriter, *http.Request)) *httptest.ResponseRecorder {
+	rec := httptest.NewRecorder()
+	handler := http.HandlerFunc(handlerFn)
+
+	handler.ServeHTTP(rec, req)
+
+	return rec
 }
