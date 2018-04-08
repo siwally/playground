@@ -16,7 +16,7 @@ func (player *Player) PlotShips(cfg *GameConfig, ships ...Ship) (types map[ShipT
 	hitsByShip := map[*Ship]int{}
 
 	for _, ship := range ships {
-		types[ship.shipType]++
+		types[ship.ShipType]++
 
 		hitsByShip[&ship] = 0
 		plotCoords(cfg, &ship, coords)
@@ -31,9 +31,9 @@ func (player *Player) PlotShips(cfg *GameConfig, ships ...Ship) (types map[ShipT
 
 func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) (coords []Coord) {
 
-	coords = make([]Coord, ship.shipType.len)
+	coords = make([]Coord, ship.ShipType.Len)
 
-	for i := 0; i < ship.shipType.len; i++ {
+	for i := 0; i < ship.ShipType.Len; i++ {
 
 		pos := ship.getCoord(i)
 		coords[i] = pos
@@ -67,7 +67,7 @@ func (player *Player) Attack(move Coord) (bool, *Ship, error) {
 
 func (player *Player) sunk(ship *Ship) (sunk *Ship) {
 
-	if player.hitsByShip[ship] == ship.shipType.len {
+	if player.hitsByShip[ship] == ship.ShipType.Len {
 		sunk = ship
 	}
 

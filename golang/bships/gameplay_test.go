@@ -5,7 +5,7 @@ import (
 )
 
 func TestVerticalShip(t *testing.T) {
-	ship := Ship{Coord{'B', 5}, topToBottom, mid}
+	ship := Ship{Coord{'B', 5}, TopToBottom, mid}
 	game, _ := createTestGame(ship)
 
 	checkHitOrMiss(game, Coord{'B', 5}, t, true, nil)
@@ -26,7 +26,7 @@ func TestVerticalShip(t *testing.T) {
 }
 
 func TestDuplicateHits(t *testing.T) {
-	ship := Ship{Coord{'B', 5}, topToBottom, mid}
+	ship := Ship{Coord{'B', 5}, TopToBottom, mid}
 	game, _ := createTestGame(ship)
 
 	checkHitOrMiss(game, Coord{'C', 5}, t, true, nil)
@@ -40,7 +40,7 @@ func TestDuplicateHits(t *testing.T) {
 }
 
 func TestHorizontalShip(t *testing.T) {
-	ship := Ship{Coord{'B', 2}, leftToRight, mid}
+	ship := Ship{Coord{'B', 2}, LeftToRight, mid}
 	game, _ := createTestGame(ship)
 
 	checkHitOrMiss(game, Coord{'B', 2}, t, true, nil)
@@ -65,7 +65,7 @@ func TestSinkingShip(t *testing.T) {
 		GridWidth: 10,
 		shipTypes: map[ShipType]int{dinky: 1}}
 
-	ship := Ship{dir: topToBottom, shipType: dinky, start: Coord{'A', 1}}
+	ship := Ship{Dir: TopToBottom, ShipType: dinky, Start: Coord{'A', 1}}
 	game := NewGame(cfg)
 	game.AddPlayer(playerName, ship)
 

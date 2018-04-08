@@ -12,17 +12,21 @@ import (
 )
 
 func TestCreateGame(t *testing.T) {
-	json := createGameJSON(t, 10, 10)
-	req, _ := http.NewRequest("POST", "/bships/games", bytes.NewReader(json))
+	req, _ := http.NewRequest("POST", "/bships/games", nil)
 
 	rec := serve(req, GameHandler)
 
 	if status := rec.Code; status != http.StatusOK {
 		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
 	}
+
+	// TODO - Check gameId returned in JSON
 }
 
 func TestAddPlayer(t *testing.T) {
+
+	createTestGame() // TODO - use game id returned
+
 	json := createPlayerJSON(t)
 	req, _ := http.NewRequest("POST", "/bships/games/players", bytes.NewReader(json))
 
@@ -31,6 +35,11 @@ func TestAddPlayer(t *testing.T) {
 	if status := rec.Code; status != http.StatusOK {
 		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
 	}
+
+	// TODO - Check playerId returned in JSON
+}
+func TestMove(t *testing.T) {
+	// TODO - utilities to create game, create player, using ids, then make a move and validate
 }
 
 func DontTestServer(t *testing.T) {
@@ -48,20 +57,11 @@ func DontTestServer(t *testing.T) {
 
 // Small utitlity methods to simplify tests.
 
-func createGameJSON(t *testing.T, gridWidth, gridHeight int) []byte {
-	cfg := bships.GameConfig{GridWidth: 10, GridHeight: 10}
-	json, err := json.Marshal(cfg)
-
-	if err != nil {
-		t.Fatalf("Unable to encode request data for test: %v", err)
-	}
-
-	return json
-}
-
 func createPlayerJSON(t *testing.T) []byte {
 
-	req := PlayerReq{PlayerName: "p1"} // , Ships: []bships.Ship{}
+	ship1 := bships.Ship{Start: bships.Coord{Row: 'B', Column: 1}, Dir: bships.TopToBottom, ShipType: mid}
+
+	req := PlayerReq{PlayerName: "p1", Ships: []bships.Ship{ship1}}
 
 	json, err := json.Marshal(req)
 
@@ -70,6 +70,12 @@ func createPlayerJSON(t *testing.T) []byte {
 	}
 
 	return json
+}
+
+func createTestGame() {
+	req, _ := http.NewRequest("POST", "/bships/games", nil)
+
+	serve(req, GameHandler)
 }
 
 func serve(req *http.Request, handlerFn func(http.ResponseWriter, *http.Request)) *httptest.ResponseRecorder {
