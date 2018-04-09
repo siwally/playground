@@ -7,7 +7,7 @@ import (
 // Game represents a game of Batteships.
 type Game struct {
 	config  GameConfig
-	players map[string]Player
+	Players map[string]*Player
 }
 
 // GameConfig holds details that don't change throughout the game, such as the size of the grid.
@@ -52,7 +52,7 @@ var gridStart = Coord{'A', 1}
 // NewGame initialises and returns a new game.
 func NewGame(cfg GameConfig) (game *Game) {
 
-	return &Game{cfg, map[string]Player{}}
+	return &Game{cfg, map[string]*Player{}}
 }
 
 // AddPlayer adds a player and their grid of ships into the game.
@@ -69,7 +69,7 @@ func (game *Game) AddPlayer(playerName string, ships ...Ship) (err error) {
 	validateShipTypes(game.config.shipTypes, shipTypes)
 	validateCoords(&game.config, coords)
 
-	game.players[playerName] = player
+	game.Players[playerName] = &player
 
 	return
 }

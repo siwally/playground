@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -21,6 +22,7 @@ func TestCreateGame(t *testing.T) {
 	}
 
 	// TODO - Check gameId returned in JSON
+	fmt.Printf("Create game returned body: %v\n", rec.Body)
 }
 
 func TestAddPlayer(t *testing.T) {
@@ -37,9 +39,24 @@ func TestAddPlayer(t *testing.T) {
 	}
 
 	// TODO - Check playerId returned in JSON
+	fmt.Printf("Add player returned body: %v\n", rec.Body)
 }
-func TestMove(t *testing.T) {
-	// TODO - utilities to create game, create player, using ids, then make a move and validate
+func TestAttack(t *testing.T) {
+
+	createTestGame()
+	createTestPlayer(t)
+
+	json := createAttackJSON(t)
+	req, _ := http.NewRequest("POST", "/bships/games/attacks", bytes.NewReader(json))
+
+	rec := serve(req, AttackHandler)
+
+	if status := rec.Code; status != http.StatusOK {
+		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
+	}
+
+	// Check outcome in body
+	fmt.Printf("Attack returned body: %v\n", rec.Body)
 }
 
 func DontTestServer(t *testing.T) {
@@ -72,10 +89,29 @@ func createPlayerJSON(t *testing.T) []byte {
 	return json
 }
 
+func createAttackJSON(t *testing.T) []byte {
+	req := AttackReq{PlayerName: "p1", Move: bships.Coord{Row: 'A', Column: 1}}
+
+	json, err := json.Marshal(req)
+
+	if err != nil {
+		t.Fatalf("Unable to encode request data for test: %v", err)
+	}
+
+	return json
+}
+
 func createTestGame() {
 	req, _ := http.NewRequest("POST", "/bships/games", nil)
 
 	serve(req, GameHandler)
+}
+
+func createTestPlayer(t *testing.T) {
+	json := createPlayerJSON(t)
+	req, _ := http.NewRequest("POST", "/bships/games/players", bytes.NewReader(json))
+
+	serve(req, PlayerHandler)
 }
 
 func serve(req *http.Request, handlerFn func(http.ResponseWriter, *http.Request)) *httptest.ResponseRecorder {

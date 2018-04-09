@@ -13,6 +13,7 @@ import (
 // RESTful paths exposed by this service
 const gamePath string = "/bships/games"
 const playerPath string = "/bships/games/players"
+const attackPath string = "/bships/games/attacks"
 
 // PlayerReq specifies the request body to POST when creating a player.
 type PlayerReq struct {
@@ -20,9 +21,14 @@ type PlayerReq struct {
 	Ships      []bships.Ship
 }
 
+// AttackReq specifies the request body to POST when a player attackes another player.
+type AttackReq struct {
+	PlayerName string
+	Move       bships.Coord
+}
+
 // Record of games in progress and players joined - expand for multi-game
 var game *bships.Game
-var numPlayers int
 
 // StartServer creates an HTTP server listening for Battleships game set-up and move requests.
 func StartServer(addr string) {
@@ -30,6 +36,7 @@ func StartServer(addr string) {
 
 	http.HandleFunc(gamePath, GameHandler)
 	http.HandleFunc(playerPath, PlayerHandler)
+	http.HandleFunc(attackPath, AttackHandler)
 	http.ListenAndServe(addr, nil)
 }
 
@@ -53,18 +60,34 @@ func PlayerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Decoded PlayerReq data:`%v", playerReq)
-
 	if err := game.AddPlayer(playerReq.PlayerName, playerReq.Ships...); err != nil {
 		writeError(w, "Error adding player to game", err)
 		return
 	}
 
-	numPlayers++
-	writeJSON(w, fmt.Sprintf(`{"playerId": "%v"}`, numPlayers))
+	writeJSON(w, fmt.Sprintf(`{"numPlayers": "%v"}`, len(game.Players)))
 }
 
-// TODO MoveHandler - can be underneath a player, and specify the player being attacked and the move as the payload
+// AttackHandler processes RESTful requests to attack a player.
+func AttackHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("AttackHandler invoked; path is %v", r.URL.Path)
+
+	attackReq := AttackReq{}
+
+	if err := json.NewDecoder(r.Body).Decode(&attackReq); err != nil {
+		writeError(w, "Error decoding player data", err)
+		return
+	}
+
+	hit, sunk, err := game.Players[attackReq.PlayerName].Attack(attackReq.Move)
+
+	if err != nil {
+		writeError(w, "Error attacking player", err)
+		return
+	}
+
+	writeJSON(w, fmt.Sprintf(`{"hit": "%v", "sunk": "%v"}`, hit, sunk != nil))
+}
 
 // Utility methods to avoid repetition
 

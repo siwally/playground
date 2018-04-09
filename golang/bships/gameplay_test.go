@@ -18,7 +18,7 @@ func TestVerticalShip(t *testing.T) {
 	checkHitOrMiss(game, Coord{'A', 5}, t, false, nil)
 	checkHitOrMiss(game, Coord{'F', 5}, t, false, nil)
 
-	player, _ := game.players[playerName]
+	player, _ := game.Players[playerName]
 
 	if len(player.remaining) != 0 {
 		t.Errorf("Expected remaining to be 0 for vertical ship, but was %v", len(player.remaining))
@@ -32,7 +32,7 @@ func TestDuplicateHits(t *testing.T) {
 	checkHitOrMiss(game, Coord{'C', 5}, t, true, nil)
 	checkHitOrMiss(game, Coord{'C', 5}, t, true, nil)
 
-	player, _ := game.players[playerName]
+	player, _ := game.Players[playerName]
 
 	if len(player.remaining) != 3 {
 		t.Errorf("Expected remaining to be 3 after dup hits, but was %v", len(player.remaining))
@@ -53,7 +53,7 @@ func TestHorizontalShip(t *testing.T) {
 	checkHitOrMiss(game, Coord{'A', 2}, t, false, nil)
 	checkHitOrMiss(game, Coord{'C', 2}, t, false, nil)
 
-	player, _ := game.players[playerName]
+	player, _ := game.Players[playerName]
 
 	if len(player.remaining) != 0 {
 		t.Errorf("Expected remaining to be 0 for horizontal ship, but was %v", len(player.remaining))
@@ -80,7 +80,7 @@ func TestSinkingShip(t *testing.T) {
 
 func checkHitOrMiss(game *Game, move Coord, t *testing.T, expected bool, expSunk *Ship) {
 
-	player, _ := game.players["player1"]
+	player, _ := game.Players["player1"]
 	hit, sunk, err := player.Attack(move)
 
 	if err != nil {
