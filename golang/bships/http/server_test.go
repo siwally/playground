@@ -12,51 +12,15 @@ import (
 	"github.com/siwally/golang/bships"
 )
 
-func TestCreateGame(t *testing.T) {
-	req, _ := http.NewRequest("POST", "/bships/games", nil)
+// TODO Build up test to adding and attacking multiple players, and make data-driven to play out a whole game.
+// TODO Then tighten up, so need two players, have to alternate turns, can't attack yourself to cheat, etc.
+// TODO How far do we want to go with identity though?  Interesting to see how transparent we could make it.
+// (Presumably playerId could be a token that's returned from adding a player, or earlier on, then it's validated per request?)
 
-	rec := serve(req, GameHandler)
-
-	if status := rec.Code; status != http.StatusOK {
-		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
-	}
-
-	// TODO - Check gameId returned in JSON
-	fmt.Printf("Create game returned body: %v\n", rec.Body)
-}
-
-func TestAddPlayer(t *testing.T) {
-
-	createTestGame() // TODO - use game id returned
-
-	json := createPlayerJSON(t)
-	req, _ := http.NewRequest("POST", "/bships/games/players", bytes.NewReader(json))
-
-	rec := serve(req, PlayerHandler)
-
-	if status := rec.Code; status != http.StatusOK {
-		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
-	}
-
-	// TODO - Check playerId returned in JSON
-	fmt.Printf("Add player returned body: %v\n", rec.Body)
-}
-func TestAttack(t *testing.T) {
-
-	createTestGame()
-	createTestPlayer(t)
-
-	json := createAttackJSON(t)
-	req, _ := http.NewRequest("POST", "/bships/games/attacks", bytes.NewReader(json))
-
-	rec := serve(req, AttackHandler)
-
-	if status := rec.Code; status != http.StatusOK {
-		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
-	}
-
-	// Check outcome in body
-	fmt.Printf("Attack returned body: %v\n", rec.Body)
+func TestGameplay(t *testing.T) {
+	createGame(t)
+	addPlayer(t)
+	attack(t)
 }
 
 func DontTestServer(t *testing.T) {
@@ -72,46 +36,47 @@ func DontTestServer(t *testing.T) {
 	resp.Write(os.Stdout)
 }
 
-// Small utitlity methods to simplify tests.
+// Small methods to simplify tests.
 
-func createPlayerJSON(t *testing.T) []byte {
-
-	ship1 := bships.Ship{Start: bships.Coord{Row: 'B', Column: 1}, Dir: bships.TopToBottom, ShipType: mid}
-
-	req := PlayerReq{PlayerName: "p1", Ships: []bships.Ship{ship1}}
-
-	json, err := json.Marshal(req)
-
-	if err != nil {
-		t.Fatalf("Unable to encode request data for test: %v", err)
-	}
-
-	return json
-}
-
-func createAttackJSON(t *testing.T) []byte {
-	req := AttackReq{PlayerName: "p1", Move: bships.Coord{Row: 'A', Column: 1}}
-
-	json, err := json.Marshal(req)
-
-	if err != nil {
-		t.Fatalf("Unable to encode request data for test: %v", err)
-	}
-
-	return json
-}
-
-func createTestGame() {
+func createGame(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/bships/games", nil)
 
-	serve(req, GameHandler)
+	resp := serve(req, GameHandler)
+
+	checkResp(t, resp)
 }
 
-func createTestPlayer(t *testing.T) {
-	json := createPlayerJSON(t)
-	req, _ := http.NewRequest("POST", "/bships/games/players", bytes.NewReader(json))
+func addPlayer(t *testing.T) {
+	ship1 := bships.Ship{Start: bships.Coord{Row: 'B', Column: 1}, Dir: bships.TopToBottom, ShipType: mid}
 
-	serve(req, PlayerHandler)
+	player := PlayerReq{PlayerName: "p1", Ships: []bships.Ship{ship1}}
+
+	json, err := json.Marshal(player)
+
+	if err != nil {
+		t.Fatalf("Unable to encode request data for test: %v", err)
+	}
+
+	req, _ := http.NewRequest("POST", "/bships/games/players", bytes.NewReader(json))
+	resp := serve(req, PlayerHandler)
+
+	checkResp(t, resp)
+}
+
+func attack(t *testing.T) {
+	attack := AttackReq{PlayerName: "p1", Move: bships.Coord{Row: 'A', Column: 1}}
+
+	json, err := json.Marshal(attack)
+
+	if err != nil {
+		t.Fatalf("Unable to encode request data for test: %v", err)
+	}
+
+	req, _ := http.NewRequest("POST", "/bships/games/attacks", bytes.NewReader(json))
+
+	resp := serve(req, AttackHandler)
+
+	checkResp(t, resp)
 }
 
 func serve(req *http.Request, handlerFn func(http.ResponseWriter, *http.Request)) *httptest.ResponseRecorder {
@@ -121,4 +86,13 @@ func serve(req *http.Request, handlerFn func(http.ResponseWriter, *http.Request)
 	handler.ServeHTTP(rec, req)
 
 	return rec
+}
+
+func checkResp(t *testing.T, resp *httptest.ResponseRecorder) {
+	if status := resp.Code; status != http.StatusOK {
+		t.Errorf("Handler returned %v instead of %v", status, http.StatusOK)
+	}
+
+	// TODO Check expected outcome in body
+	fmt.Printf("Response body: %v\n", resp.Body)
 }

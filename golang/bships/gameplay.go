@@ -5,7 +5,7 @@ import "fmt"
 // Player represents a player in a Game, with a record of the ships they are defending and hits against them.
 type Player struct {
 	remaining, hits map[Coord]*Ship
-	hitsByShip      map[*Ship]int
+	hitsByShip      map[*Ship]int // TODO Consider storing coords under hitsPerShip, and simplifying this struct.
 }
 
 // PlotShips plots the ships onto the player's grid and returns the ship types found and the full ship coordinates.
@@ -49,7 +49,7 @@ func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) (coords
 }
 
 // Attack executes a move against a player's grid.
-func (player *Player) Attack(move Coord) (bool, *Ship, error) {
+func (player *Player) Attack(move Coord) (bool, *Ship, error) { // TODO Remove error from the signature, or leave for enhancement
 
 	if ship, alreadyHit := player.hits[move]; alreadyHit {
 		return true, player.sunk(ship), nil
