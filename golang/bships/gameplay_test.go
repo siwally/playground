@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestVerticalShip(t *testing.T) {
+func TestAttackVerticalShip(t *testing.T) {
 	ship := Ship{Coord{'B', 5}, TopToBottom, mid}
 	game, _ := createTestGame(ship)
 
@@ -39,7 +39,7 @@ func TestDuplicateHits(t *testing.T) {
 	}
 }
 
-func TestHorizontalShip(t *testing.T) {
+func TestAttackHorizontalShip(t *testing.T) {
 	ship := Ship{Coord{'B', 2}, LeftToRight, mid}
 	game, _ := createTestGame(ship)
 

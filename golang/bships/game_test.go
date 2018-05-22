@@ -58,7 +58,7 @@ func TestVerticalShipSetup(t *testing.T) {
 	}
 }
 
-func TestMultipleShips(t *testing.T) {
+func TestMultipleShipSetup(t *testing.T) {
 
 	// fine, not overlapping
 	ship1 := Ship{Coord{'A', 2}, LeftToRight, mid}
@@ -77,7 +77,7 @@ func TestMultipleShips(t *testing.T) {
 	}
 }
 
-func TestArgsOutofBounds(t *testing.T) {
+func TestShipOffGrid(t *testing.T) {
 	ship := Ship{Coord{'B', 3}, -45, dinky}
 
 	if _, err := createTestGame(ship); err == nil {
