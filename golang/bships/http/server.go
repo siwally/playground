@@ -11,9 +11,9 @@ import (
 )
 
 // RESTful paths exposed by this service
-const gamePath string = "/bships/games"
-const playerPath string = "/bships/games/players"
-const attackPath string = "/bships/games/attacks"
+const gamePath string = "/bships/games/"
+const playerPath string = "/bships/games/players/"
+const attackPath string = "/bships/games/attacks/"
 
 // PlayerReq specifies the request body to POST when creating a player.
 type PlayerReq struct {
@@ -27,12 +27,12 @@ type AttackReq struct {
 	Move       bships.Coord
 }
 
-// Record of games in progress and players joined - expand for multi-game
+// Record of games in progress and players joined - expand for multi-game later.
 var game *bships.Game
 
 // StartServer creates an HTTP server listening for Battleships game set-up and move requests.
 func StartServer(addr string) {
-	log.Printf("Starting server at %v; handling %v\n", addr, gamePath)
+	log.Printf("Starting server at %v; handling:\n %v\n %v\n %v\n", addr, gamePath, playerPath, attackPath)
 
 	http.HandleFunc(gamePath, GameHandler)
 	http.HandleFunc(playerPath, PlayerHandler)
@@ -75,7 +75,7 @@ func AttackHandler(w http.ResponseWriter, r *http.Request) {
 	attackReq := AttackReq{}
 
 	if err := json.NewDecoder(r.Body).Decode(&attackReq); err != nil {
-		writeError(w, "Error decoding player data", err)
+		writeError(w, "Error decoding attack data", err)
 		return
 	}
 
@@ -101,5 +101,5 @@ func writeJSON(w http.ResponseWriter, str string) {
 func writeError(w http.ResponseWriter, msg string, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 
-	log.Fatalf(fmt.Sprintf("%s: %v", msg, err))
+	log.Printf(fmt.Sprintf("%s: %v", msg, err))
 }
