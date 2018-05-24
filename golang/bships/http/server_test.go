@@ -12,15 +12,27 @@ import (
 	"github.com/siwally/golang/bships"
 )
 
-// TODO Build up test to adding and attacking multiple players, and make data-driven to play out a whole game.
-// TODO Then tighten up, so need two players, have to alternate turns, can't attack yourself to cheat, etc.
-// TODO How far do we want to go with identity though?  Interesting to see how transparent we could make it.
-// (Presumably playerId could be a token that's returned from adding a player, or earlier on, then it's validated per request?)
+const player1Name string = "p1"
+const player2Name string = "p2"
+
+// TODO UI, so can play a game through and do some exploratory testing and think about evolution (before going too deep).
+// TODO Tighten up, so need two players, have to alternate turns, can't attack yourself to cheat, etc.
+// TODO Add light touch with identify, e.g. return tokens / ids for game and players.
+// TODO Make tests data-driven at some point and set expectations in the table, e.g. hit, sunk, etc.
 
 func TestGameplay(t *testing.T) {
 	createGame(t)
-	addPlayer(t)
-	attack(t)
+
+	addPlayer(t, player1Name, bships.Ship{Start: bships.Coord{Row: 'B', Column: 1}, Dir: bships.TopToBottom, ShipType: mid})
+	addPlayer(t, player2Name, bships.Ship{Start: bships.Coord{Row: 'C', Column: 2}, Dir: bships.LeftToRight, ShipType: dinky})
+
+	attack(t, player1Name, bships.Coord{Row: 'A', Column: 1})
+	attack(t, player1Name, bships.Coord{Row: 'B', Column: 1}) // hit
+	attack(t, player1Name, bships.Coord{Row: 'B', Column: 2})
+	attack(t, player1Name, bships.Coord{Row: 'C', Column: 1}) // hit
+	attack(t, player1Name, bships.Coord{Row: 'D', Column: 1}) // hit
+	attack(t, player1Name, bships.Coord{Row: 'E', Column: 1}) // hit, sunk
+	attack(t, player1Name, bships.Coord{Row: 'E', Column: 1}) // hit, sunk
 }
 
 func DontTestServer(t *testing.T) {
@@ -46,10 +58,8 @@ func createGame(t *testing.T) {
 	checkResp(t, resp)
 }
 
-func addPlayer(t *testing.T) {
-	ship1 := bships.Ship{Start: bships.Coord{Row: 'B', Column: 1}, Dir: bships.TopToBottom, ShipType: mid}
-
-	player := PlayerReq{PlayerName: "p1", Ships: []bships.Ship{ship1}}
+func addPlayer(t *testing.T, playerName string, ship bships.Ship) {
+	player := PlayerReq{PlayerName: playerName, Ships: []bships.Ship{ship}}
 
 	json, err := json.Marshal(player)
 
@@ -63,8 +73,8 @@ func addPlayer(t *testing.T) {
 	checkResp(t, resp)
 }
 
-func attack(t *testing.T) {
-	attack := AttackReq{PlayerName: "p1", Move: bships.Coord{Row: 'A', Column: 1}}
+func attack(t *testing.T, playerName string, move bships.Coord) {
+	attack := AttackReq{PlayerName: playerName, Move: move}
 
 	json, err := json.Marshal(attack)
 
