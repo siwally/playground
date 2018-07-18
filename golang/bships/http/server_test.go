@@ -17,7 +17,7 @@ const player2Name string = "p2"
 
 // TODO UI, so can play a game through and do some exploratory testing and think about evolution (before going too deep).
 // TODO Tighten up, so need two players, have to alternate turns, can't attack yourself to cheat, etc.
-// TODO Add light touch with identify, e.g. return tokens / ids for game and players.
+// TODO Add light touch with identity, e.g. return tokens / ids for game and players.
 // TODO Make tests data-driven at some point and set expectations in the table, e.g. hit, sunk, etc.
 
 func TestGameplay(t *testing.T) {
