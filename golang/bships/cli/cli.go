@@ -9,6 +9,8 @@ func main() {
 	// Start by playing against computer, with ships hard-coded onto grid
 	// Ask user for moves, then send to server and show if they've hit or not
 
+	// TODO Create basic game with one player, to try to hit.
+
 	fmt.Println("Their grid...")
 	printGrid(board)
 	move := askForMove()
