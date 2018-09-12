@@ -1,6 +1,7 @@
 package bships
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -56,69 +57,74 @@ func NewGame(cfg GameConfig) (game *Game) {
 }
 
 // AddPlayer adds a player and their grid of ships into the game.
-func (game *Game) AddPlayer(playerName string, ships ...Ship) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("Error adding player %v: %v", playerName, r)
-		}
-	}()
+func (game *Game) AddPlayer(playerName string, ships ...Ship) error {
 
 	player := Player{}
-	shipTypes, coords := player.PlotShips(&game.config, ships...)
 
-	validateShipTypes(game.config.shipTypes, shipTypes)
-	validateCoords(&game.config, coords)
+	shipTypes, coords, err := player.PlotShips(&game.config, ships...)
+
+	if err != nil {
+		return fmt.Errorf("Error adding player %v when plotting ships: %v", playerName, err)
+	}
+
+	if err = validateShipTypes(game.config.shipTypes, shipTypes); err != nil {
+		return fmt.Errorf("Error adding player %v when validating ship types: %v", playerName, err)
+	}
+
+	if err = validateCoords(&game.config, coords); err != nil {
+		return fmt.Errorf("Error adding player %v when validating ship coordinates: %v", playerName, err)
+	}
 
 	game.Players[playerName] = &player
 
-	return
+	return nil
 }
 
 func (ship *Ship) getCoord(offset int) Coord {
 
-	switch ship.Dir {
-	case TopToBottom:
+	if ship.Dir == TopToBottom {
 		return Coord{rune(int(ship.Start.Row) + offset), ship.Start.Column}
-	case LeftToRight:
-		return Coord{ship.Start.Row, ship.Start.Column + offset}
-	default:
-		panic(fmt.Sprintf("Unreachable condidtion in switch on ship.dir %v", ship.Dir))
 	}
+
+	// Assume LeftToRight otherwise
+	return Coord{ship.Start.Row, ship.Start.Column + offset}
 }
 
 // +1 as ship placement is inclusive, i.e. a ship includes its starting position in its len
-func validateCoords(cfg *GameConfig, coords map[Coord]*Ship) {
+func validateCoords(cfg *GameConfig, coords map[Coord]*Ship) error {
 
 	for coord := range coords {
 
 		if coord.Row < gridStart.Row {
-			panic(fmt.Sprintf("Ship exceeds top boundary at coordinate %v", coord))
+			return fmt.Errorf("Ship exceeds top boundary at coordinate %v", coord)
 		}
 
 		if int(coord.Row)-int(gridStart.Row)+1 > cfg.GridWidth {
-			panic(fmt.Errorf("Ship exceeds lower boundary at coordinate %v", coord))
+			return fmt.Errorf("Ship exceeds lower boundary at coordinate %v", coord)
 		}
 
 		if coord.Column < 1 {
-			panic(fmt.Errorf("Ship %v exceeds left-hand boundary", coord))
+			return fmt.Errorf("Ship %v exceeds left-hand boundary", coord)
 		}
 
 		if coord.Column-gridStart.Column+1 > cfg.GridHeight {
-			panic(fmt.Errorf("Ship %v exceeds right-hand boundary", coord))
+			return fmt.Errorf("Ship %v exceeds right-hand boundary", coord)
 		}
 	}
+
+	return nil
 }
 
-func validateShipTypes(required, actual map[ShipType]int) {
+func validateShipTypes(required, actual map[ShipType]int) error {
 
 	if required == nil {
-		return
+		return nil
 	}
 
 	errMsg := "Ship types and numbers in GameConfig do not match ships supplied for Player"
 
 	if len(required) != len(actual) {
-		panic(errMsg)
+		return errors.New(errMsg)
 	}
 
 	for k, v := range required {
@@ -126,7 +132,9 @@ func validateShipTypes(required, actual map[ShipType]int) {
 		v2, found := actual[k]
 
 		if !found || v != v2 {
-			panic(errMsg)
+			return errors.New(errMsg)
 		}
 	}
+
+	return nil
 }

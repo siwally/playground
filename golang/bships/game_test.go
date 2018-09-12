@@ -77,14 +77,6 @@ func TestMultipleShipSetup(t *testing.T) {
 	}
 }
 
-func TestShipOffGrid(t *testing.T) {
-	ship := Ship{Coord{'B', 3}, -45, dinky}
-
-	if _, err := createTestGame(ship); err == nil {
-		t.Errorf("Error should have been returned when ship Facing value out of bounds")
-	}
-}
-
 func TestGameConfig(t *testing.T) {
 
 	// fine, correct number of ships and ships the right lenght

@@ -9,7 +9,7 @@ type Player struct {
 }
 
 // PlotShips plots the ships onto the player's grid and returns the ship types found and the full ship coordinates.
-func (player *Player) PlotShips(cfg *GameConfig, ships ...Ship) (types map[ShipType]int, coords map[Coord]*Ship) {
+func (player *Player) PlotShips(cfg *GameConfig, ships ...Ship) (types map[ShipType]int, coords map[Coord]*Ship, err error) {
 	types = map[ShipType]int{}
 	coords = map[Coord]*Ship{}
 
@@ -19,7 +19,10 @@ func (player *Player) PlotShips(cfg *GameConfig, ships ...Ship) (types map[ShipT
 		types[ship.ShipType]++
 
 		hitsByShip[&ship] = 0
-		plotCoords(cfg, &ship, coords)
+
+		if err = plotCoords(cfg, &ship, coords); err != nil {
+			return
+		}
 	}
 
 	player.remaining = coords
@@ -29,9 +32,9 @@ func (player *Player) PlotShips(cfg *GameConfig, ships ...Ship) (types map[ShipT
 	return
 }
 
-func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) (coords []Coord) {
+func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) error {
 
-	coords = make([]Coord, ship.ShipType.Len)
+	coords := make([]Coord, ship.ShipType.Len)
 
 	for i := 0; i < ship.ShipType.Len; i++ {
 
@@ -39,13 +42,13 @@ func plotCoords(cfg *GameConfig, ship *Ship, shipCoords map[Coord]*Ship) (coords
 		coords[i] = pos
 
 		if _, dup := shipCoords[pos]; dup {
-			panic(fmt.Sprintf("Unable to place ship at %v, as ship already at this coordinate", pos))
+			return fmt.Errorf("Unable to place ship at %v, as ship already at this coordinate", pos)
 		}
 
 		shipCoords[pos] = ship
 	}
 
-	return
+	return nil
 }
 
 // Attack executes a move against a player's grid.
