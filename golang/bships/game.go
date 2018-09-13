@@ -63,16 +63,8 @@ func (game *Game) AddPlayer(playerName string, ships ...Ship) error {
 
 	shipTypes, coords, err := player.PlotShips(&game.config, ships...)
 
-	if err != nil {
-		return fmt.Errorf("Error adding player %v when plotting ships: %v", playerName, err)
-	}
-
-	if err = validateShipTypes(game.config.shipTypes, shipTypes); err != nil {
-		return fmt.Errorf("Error adding player %v when validating ship types: %v", playerName, err)
-	}
-
-	if err = validateCoords(&game.config, coords); err != nil {
-		return fmt.Errorf("Error adding player %v when validating ship coordinates: %v", playerName, err)
+	if err = validatePlottedShips(game, shipTypes, coords, err); err != nil {
+		return fmt.Errorf("Error adding player %v when validating plotted ships: %v", playerName, err)
 	}
 
 	game.Players[playerName] = &player
@@ -80,14 +72,17 @@ func (game *Game) AddPlayer(playerName string, ships ...Ship) error {
 	return nil
 }
 
-func (ship *Ship) getCoord(offset int) Coord {
+func validatePlottedShips(game *Game, shipTypes map[ShipType]int, coords map[Coord]*Ship, prevErr error) error {
 
-	if ship.Dir == TopToBottom {
-		return Coord{rune(int(ship.Start.Row) + offset), ship.Start.Column}
+	if prevErr != nil {
+		return prevErr
 	}
 
-	// Assume LeftToRight otherwise
-	return Coord{ship.Start.Row, ship.Start.Column + offset}
+	if err := validateShipTypes(game.config.shipTypes, shipTypes); err != nil {
+		return err
+	}
+
+	return validateCoords(&game.config, coords)
 }
 
 // +1 as ship placement is inclusive, i.e. a ship includes its starting position in its len
@@ -137,4 +132,14 @@ func validateShipTypes(required, actual map[ShipType]int) error {
 	}
 
 	return nil
+}
+
+func (ship *Ship) getCoord(offset int) Coord {
+
+	if ship.Dir == TopToBottom {
+		return Coord{rune(int(ship.Start.Row) + offset), ship.Start.Column}
+	}
+
+	// Assume LeftToRight otherwise
+	return Coord{ship.Start.Row, ship.Start.Column + offset}
 }
